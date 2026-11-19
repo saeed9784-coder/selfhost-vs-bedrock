@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "_note": "Model ids and caching rules must be confirmed against the target account at deploy time. Override at runtime with the SSM parameter /keepsake/models/capabilities (no code change).",
+  "models": {
+    "us.anthropic.claude-sonnet-4-5-20250929-v1:0": {
+      "family": "anthropic",
+      "model_version": "claude-sonnet-4-5-20250929-v1",
+      "supports_prompt_cache": true,
+      "min_cache_tokens": 1024,
+      "cache_ttl_seconds": 300
+    },
+    "us.amazon.nova-pro-v1:0": {
+      "family": "amazon-nova",
+      "model_version": "nova-pro-v1",
+      "supports_prompt_cache": true,
+      "min_cache_tokens": 1000,
+      "cache_ttl_seconds": 300
+    },
+    "deepseek.v3.2": {
+      "family": "deepseek",
+      "model_version": "deepseek-v3.2",
+      "supports_prompt_cache": false,
+      "min_cache_tokens": 0,
+      "cache_ttl_seconds": 0
+    }
+  }
+}

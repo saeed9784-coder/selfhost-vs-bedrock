@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keepsake usage</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="dashboard">
+  <header>
+    <h1>Usage and savings</h1>
+    <nav>
+      <a href="index.html" data-testid="nav-home-link">Home</a>
+      <a href="admin.html" data-testid="nav-admin-link">Documents</a>
+    </nav>
+    <div>
+      <span id="user-name" data-testid="header-user-name"></span>
+      <button type="button" id="login-button" data-testid="header-login-button">Sign in</button>
+      <button type="button" id="logout-button" class="secondary" data-testid="header-logout-button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main>
+    <div id="status" class="status" role="status" data-testid="page-status"></div>
+
+    <section>
+      <h2>Filters</h2>
+      <form id="usage-form" data-testid="usage-form">
+        <div class="row">
+          <label>Scope
+            <select name="scope" data-testid="usage-scope-select">
+              <option value="team">My team</option>
+              <option value="company">Company (finance)</option>
+            </select></label>
+          <label>Team (finance only)
+            <input name="team" data-testid="usage-team-input"></label>
+          <label>From
+            <input type="date" name="from" data-testid="usage-from-input"></label>
+          <label>To
+            <input type="date" name="to" data-testid="usage-to-input"></label>
+          <label>Group by
+            <select name="group_by" data-testid="usage-group-by-select">
+              <option value="agent">Agent</option>
+              <option value="team">Team</option>
+            </select></label>
+        </div>
+        <button type="submit" data-testid="usage-submit-button">Show usage</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Totals</h2>
+      <div class="tiles" data-testid="usage-totals">
+        <div class="tile"><div class="label">Tokens sent</div><div class="value" data-field="tokens_sent">-</div></div>
+        <div class="tile"><div class="label">Tokens from cache</div><div class="value" data-field="tokens_from_cache">-</div></div>
+        <div class="tile"><div class="label">Full-price tokens</div><div class="value" data-field="full_price_tokens">-</div></div>
+        <div class="tile"><div class="label">Spent</div><div class="value" data-field="spend_usd">-</div></div>
+        <div class="tile"><div class="label">Saved</div><div class="value" data-field="saved_usd">-</div></div>
+        <div class="tile"><div class="label">Cache storage cost</div><div class="value" data-field="storage_cost_usd">-</div></div>
+        <div class="tile"><div class="label">Cache hit rate</div><div class="value" data-field="hit_rate">-</div></div>
+        <div class="tile"><div class="label">p50 latency</div><div class="value" data-field="p50_latency_ms">-</div></div>
+        <div class="tile"><div class="label">p99 latency</div><div class="value" data-field="p99_latency_ms">-</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Per agent or team</h2>
+      <div class="table-wrap">
+        <table data-testid="usage-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th class="num" data-field="tokens_sent">Tokens sent</th>
+              <th class="num" data-field="tokens_from_cache">From cache</th>
+              <th class="num" data-field="full_price_tokens">Full price</th>
+              <th class="num" data-field="spend_usd">Spent</th>
+              <th class="num" data-field="saved_usd">Saved</th>
+              <th class="num" data-field="storage_cost_usd">Storage cost</th>
+              <th class="num" data-field="hit_rate">Hit rate</th>
+              <th class="num" data-field="p50_latency_ms">p50 ms</th>
+              <th class="num" data-field="p99_latency_ms">p99 ms</th>
+            </tr>
+          </thead>
+          <tbody id="usage-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Cache hit rate over time</h2>
+      <svg id="hit-rate-chart" class="chart" role="img" aria-label="Cache hit rate over time"
+           viewBox="0 0 600 220" preserveAspectRatio="none" data-testid="dashboard-hit-rate-chart"></svg>
+      <p id="hit-rate-fallback" data-testid="dashboard-hit-rate-text"></p>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

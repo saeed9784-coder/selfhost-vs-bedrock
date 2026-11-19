@@ -1,0 +1,4 @@
+# Runtime dependencies for the Keepsake Lambda functions and the Phase 0 analyzer CLI.
+# boto3 is also provided by the Lambda runtime; Powertools is provided by the Lambda layer.
+boto3>=1.40
+aws-lambda-powertools>=3.0

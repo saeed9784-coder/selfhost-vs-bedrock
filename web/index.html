@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keepsake</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="index">
+  <header>
+    <h1>Keepsake</h1>
+    <nav>
+      <a href="admin.html" data-testid="nav-admin-link">Documents</a>
+      <a href="dashboard.html" data-testid="nav-dashboard-link">Usage dashboard</a>
+    </nav>
+    <div>
+      <span id="user-name" data-testid="header-user-name"></span>
+      <button type="button" id="login-button" data-testid="header-login-button">Sign in</button>
+      <button type="button" id="logout-button" class="secondary" data-testid="header-logout-button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main>
+    <div id="status" class="status" role="status" data-testid="page-status"></div>
+    <section>
+      <h2>Welcome</h2>
+      <p>Keepsake keeps shared agent context governed and cached in front of Amazon Bedrock.</p>
+      <p>Sign in with your company account, then manage context documents or view usage and savings.</p>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

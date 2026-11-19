@@ -1,0 +1,142 @@
+# Reference workloads for infra/selfhost_full_stack.py (EKS). Not deployed, not tested on a cluster.
+#
+# Maps to architecture/full-inference-architecture.drawio:
+#   prefill pool  -> vllm-prefill (NIXL KV producer) on nodes labelled inference.pool=prefill
+#   decode pool   -> vllm-decode  (NIXL KV consumer) on nodes labelled inference.pool=decode
+#   fast KV xfer  -> NixlConnector (uses EFA/GPUDirect RDMA when the nodes have EFA)
+#   L1 KV         -> vLLM prefix cache in GPU memory + LMCache CPU offload
+#   L2 KV         -> LMCache local-disk backend on the FSx for Lustre mount /fsx (shared prefixes)
+#   gateway       -> src/selfhost (cache-aware router, tenant auth, cost telemetry)
+#
+# A production install would let llm-d's inference scheduler pair prefill and decode pods
+# (https://github.com/llm-d/llm-d); the gateway here then routes tenants/sessions to llm-d.
+# Pin image tags and confirm every flag against the vLLM and LMCache versions you deploy.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: inference
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lmcache
+  namespace: inference
+data:
+  lmcache.yaml: |
+    chunk_size: 256
+    local_cpu: true
+    max_local_cpu_size: 200        # GB of host RAM per pod (L1 host tier)
+    local_disk: "file:///fsx/kv/"  # L2 shared prefix tier on FSx for Lustre
+    max_local_disk_size: 2000      # GB
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-prefill
+  namespace: inference
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: vllm-prefill}}
+  template:
+    metadata: {labels: {app: vllm-prefill}}
+    spec:
+      nodeSelector: {inference.pool: prefill}
+      tolerations: [{key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}]
+      containers:
+        - name: vllm
+          image: lmcache/vllm-openai:latest  # pin a tested tag before use
+          args:
+            - --model=meta-llama/Llama-3.1-70B-Instruct
+            - --tensor-parallel-size=8
+            - --enable-prefix-caching
+            - --enable-prompt-tokens-details
+            - '--kv-transfer-config={"kv_connector":"NixlConnector","kv_role":"kv_both"}'
+          env:
+            - {name: LMCACHE_CONFIG_FILE, value: /config/lmcache.yaml}
+            - name: HF_TOKEN
+              valueFrom: {secretKeyRef: {name: hf-token, key: token}}
+          ports: [{containerPort: 8000}]
+          resources:
+            limits: {nvidia.com/gpu: 8}
+          readinessProbe: {httpGet: {path: /health, port: 8000}, periodSeconds: 10}
+          volumeMounts:
+            - {name: lmcache, mountPath: /config}
+            - {name: fsx, mountPath: /fsx}
+            - {name: shm, mountPath: /dev/shm}
+      volumes:
+        - name: lmcache
+          configMap: {name: lmcache}
+        - name: fsx
+          persistentVolumeClaim: {claimName: fsx-kv}
+        - name: shm
+          emptyDir: {medium: Memory, sizeLimit: 64Gi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-decode
+  namespace: inference
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: vllm-decode}}
+  template:
+    metadata: {labels: {app: vllm-decode}}
+    spec:
+      nodeSelector: {inference.pool: decode}
+      tolerations: [{key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}]
+      terminationGracePeriodSeconds: 300  # graceful drain before scale-in
+      containers:
+        - name: vllm
+          image: lmcache/vllm-openai:latest  # pin a tested tag before use
+          args:
+            - --model=meta-llama/Llama-3.1-70B-Instruct
+            - --tensor-parallel-size=8
+            - --enable-prefix-caching
+            - --enable-prompt-tokens-details
+            - '--kv-transfer-config={"kv_connector":"NixlConnector","kv_role":"kv_both"}'
+          env:
+            - name: HF_TOKEN
+              valueFrom: {secretKeyRef: {name: hf-token, key: token}}
+          ports: [{containerPort: 8000}]
+          resources:
+            limits: {nvidia.com/gpu: 8}
+          readinessProbe: {httpGet: {path: /health, port: 8000}, periodSeconds: 10}
+          volumeMounts:
+            - {name: shm, mountPath: /dev/shm}
+      volumes:
+        - name: shm
+          emptyDir: {medium: Memory, sizeLimit: 64Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-decode
+  namespace: inference
+spec:
+  selector: {app: vllm-decode}
+  ports: [{port: 8000, targetPort: 8000}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: inference
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: gateway}}
+  template:
+    metadata: {labels: {app: gateway}}
+    spec:
+      nodeSelector: {inference.pool: system}
+      containers:
+        - name: gateway
+          image: REPLACE_WITH_ECR_IMAGE  # build from src/selfhost + web/chat
+          env:
+            - {name: SELFHOST_MODEL, value: llama-3.1-8b}
+            - {name: SELFHOST_INSTANCE_TYPE, value: p5.48xlarge}
+            - name: SELFHOST_REPLICAS
+              value: '[{"name":"decode","url":"http://vllm-decode:8000","max_context":131072,"max_inflight":256}]'
+            - name: SELFHOST_ACCESS_TOKEN
+              valueFrom: {secretKeyRef: {name: gateway-token, key: token}}
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}

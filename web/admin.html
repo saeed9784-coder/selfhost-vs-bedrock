@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keepsake documents</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="admin">
+  <header>
+    <h1>Context documents</h1>
+    <nav>
+      <a href="index.html" data-testid="nav-home-link">Home</a>
+      <a href="dashboard.html" data-testid="nav-dashboard-link">Usage dashboard</a>
+    </nav>
+    <div>
+      <span id="user-name" data-testid="header-user-name"></span>
+      <button type="button" id="login-button" data-testid="header-login-button">Sign in</button>
+      <button type="button" id="logout-button" class="secondary" data-testid="header-logout-button" hidden>Sign out</button>
+    </div>
+  </header>
+  <main>
+    <div id="status" class="status" role="status" data-testid="page-status"></div>
+
+    <section>
+      <h2>Documents</h2>
+      <button type="button" id="refresh-documents" class="secondary" data-testid="documents-refresh-button">Refresh</button>
+      <div class="table-wrap">
+        <table data-testid="documents-table">
+          <thead>
+            <tr><th>Id</th><th>Title</th><th>Team</th><th>Classification</th><th>Status</th>
+                <th>Current</th><th>Pending approval</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="documents-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Upload a new document</h2>
+      <form id="upload-form" data-testid="upload-form">
+        <div class="row">
+          <label>Document id
+            <input name="document_id" required pattern="[A-Za-z0-9][A-Za-z0-9._:-]{0,127}" data-testid="upload-document-id-input"></label>
+          <label>Title
+            <input name="title" required maxlength="200" data-testid="upload-title-input"></label>
+          <label>Owner team
+            <input name="owner_team" required value="company" data-testid="upload-owner-team-input"></label>
+          <label>Classification
+            <select name="classification" data-testid="upload-classification-select">
+              <option>policy</option><option>runbook</option><option>source-code</option>
+              <option>contract</option><option>product-doc</option><option>customer-data</option>
+            </select></label>
+        </div>
+        <label>Text file (optional, fills the text below)
+          <input type="file" id="upload-file" accept=".txt,.md,text/plain,text/markdown" data-testid="upload-file-input"></label>
+        <label>Text
+          <textarea name="text" required data-testid="upload-text-input"></textarea></label>
+        <button type="submit" data-testid="upload-submit-button">Upload</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Update a document (new version)</h2>
+      <form id="update-form" data-testid="update-form">
+        <label>Document id
+          <input name="document_id" required data-testid="update-document-id-input"></label>
+        <label>New text
+          <textarea name="text" required data-testid="update-text-input"></textarea></label>
+        <button type="submit" data-testid="update-submit-button">Save new version</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Version history</h2>
+      <form id="history-form" data-testid="history-form">
+        <label>Document id
+          <input name="document_id" required data-testid="history-document-id-input"></label>
+        <button type="submit" class="secondary" data-testid="history-submit-button">Show history</button>
+      </form>
+      <div class="table-wrap">
+        <table data-testid="history-table">
+          <thead><tr><th>Version</th><th>Status</th><th>Author</th><th>Created</th><th>Chunks</th><th>Findings</th></tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

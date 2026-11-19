@@ -1,0 +1,309 @@
+{
+  "version": 1,
+  "currency": "USD",
+  "_note": "Planning prices for us-east-1 on-demand, entered by hand. Confirm against the AWS price list before quoting them. Throughput figures are assumptions per instance kind until replaced with measured benchmark results from the deployed instance.",
+  "models": {
+    "minimax-m2.5": {
+      "label": "MiniMax M2.5",
+      "hf_model": "MiniMaxAI/MiniMax-M2.5",
+      "hf_gated": false,
+      "gguf": "unsloth/MiniMax-M2.5-GGUF:UD-Q3_K_XL",
+      "gguf_note": "unsloth UD-Q3_K_XL, about 3.5 bits per weight, 101.3 GB. Bedrock does not publish its serving precision.",
+      "tokenizer_version": "minimax-m2.5",
+      "reasoning": true,
+      "max_model_len": 32768,
+      "memory_gb": {
+        "cpu": 112,
+        "gpu": 160
+      },
+      "disk_gb": 200,
+      "bedrock_model_id": "minimax.minimax-m2.5",
+      "bedrock_base_model_id": "minimax.minimax-m2.5",
+      "bedrock_price": {
+        "input_per_million": 0.3,
+        "output_per_million": 1.2
+      },
+      "throughput_assumption": {
+        "cpu": {
+          "prefill_tokens_per_second": 45,
+          "decode_tokens_per_second": 6,
+          "_source": "assumption: about 10B active parameters per token (MoE), similar memory traffic to the measured 8B Q4 model; replace with the measured figure from the deployed node"
+        },
+        "gpu": {
+          "prefill_tokens_per_second": 8000,
+          "decode_tokens_per_second": 1500,
+          "_source": "assumption per L40S-equivalent for a 10B-active MoE; needs at least 160 GB of GPU memory (4x L40S or H100 class)"
+        }
+      }
+    },
+    "llama-3.1-8b": {
+      "label": "Llama 3.1 8B Instruct",
+      "hf_model": "meta-llama/Llama-3.1-8B-Instruct",
+      "hf_gated": true,
+      "tokenizer_version": "llama-3.1",
+      "max_model_len": 32768,
+      "bedrock_model_id": "us.meta.llama3-1-8b-instruct-v1:0",
+      "bedrock_base_model_id": "meta.llama3-1-8b-instruct-v1:0",
+      "bedrock_price": {
+        "input_per_million": 0.22,
+        "output_per_million": 0.22
+      },
+      "throughput_assumption": {
+        "cpu": {
+          "prefill_tokens_per_second": 55,
+          "decode_tokens_per_second": 6.5,
+          "_source": "measured on the deployed c7i.2xlarge, llama.cpp Q4_K_M, single stream, 2026-11-16"
+        },
+        "gpu": {
+          "prefill_tokens_per_second": 12000,
+          "decode_tokens_per_second": 2500
+        }
+      },
+      "gguf": "bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Q4_K_M",
+      "memory_gb": {
+        "cpu": 8,
+        "gpu": 24
+      },
+      "disk_gb": 40
+    },
+    "qwen3-32b": {
+      "label": "Qwen3 32B (FP8 self-hosted)",
+      "hf_model": "Qwen/Qwen3-32B-FP8",
+      "hf_gated": false,
+      "tokenizer_version": "qwen3",
+      "max_model_len": 16384,
+      "bedrock_model_id": "qwen.qwen3-32b-v1:0",
+      "bedrock_base_model_id": "qwen.qwen3-32b-v1:0",
+      "bedrock_price": {
+        "input_per_million": 0.15,
+        "output_per_million": 0.6
+      },
+      "throughput_assumption": {
+        "gpu": {
+          "prefill_tokens_per_second": 4000,
+          "decode_tokens_per_second": 700
+        }
+      },
+      "memory_gb": {
+        "gpu": 40
+      },
+      "disk_gb": 80
+    }
+  },
+  "instances": {
+    "c7i.xlarge": {
+      "usd_per_hour": 0.1785,
+      "kind": "cpu",
+      "hardware": "4 vCPU, 8 GiB (Intel Sapphire Rapids)",
+      "spot_usd_per_hour": 0.0502,
+      "savings_plan_usd_per_hour": 0.11808,
+      "throughput_scale": 0.5,
+      "alternatives": [
+        "m7i.xlarge",
+        "c6i.xlarge",
+        "m6i.xlarge",
+        "c7a.xlarge"
+      ],
+      "memory_gib": 8
+    },
+    "m7i.xlarge": {
+      "usd_per_hour": 0.2016,
+      "kind": "cpu",
+      "hardware": "4 vCPU, 16 GiB (Intel Sapphire Rapids)",
+      "spot_usd_per_hour": 0.0771,
+      "savings_plan_usd_per_hour": 0.13336,
+      "throughput_scale": 0.5,
+      "memory_gib": 16
+    },
+    "c6i.xlarge": {
+      "usd_per_hour": 0.17,
+      "kind": "cpu",
+      "hardware": "4 vCPU, 8 GiB (Intel Ice Lake)",
+      "spot_usd_per_hour": 0.0615,
+      "savings_plan_usd_per_hour": 0.11246,
+      "throughput_scale": 0.425,
+      "memory_gib": 8
+    },
+    "m6i.xlarge": {
+      "usd_per_hour": 0.192,
+      "kind": "cpu",
+      "hardware": "4 vCPU, 16 GiB (Intel Ice Lake)",
+      "spot_usd_per_hour": 0.0816,
+      "savings_plan_usd_per_hour": 0.12701,
+      "throughput_scale": 0.425,
+      "memory_gib": 16
+    },
+    "c7a.xlarge": {
+      "usd_per_hour": 0.20528,
+      "kind": "cpu",
+      "hardware": "4 vCPU, 8 GiB (AMD Genoa)",
+      "spot_usd_per_hour": 0.1113,
+      "savings_plan_usd_per_hour": 0.13579,
+      "throughput_scale": 1.2,
+      "alternatives": [
+        "c7a.2xlarge"
+      ],
+      "memory_gib": 8
+    },
+    "c7i.2xlarge": {
+      "usd_per_hour": 0.357,
+      "kind": "cpu",
+      "hardware": "8 vCPU, 16 GiB (Intel Sapphire Rapids)",
+      "alternatives": [
+        "m7i.2xlarge",
+        "c6i.2xlarge",
+        "m6i.2xlarge",
+        "c7a.2xlarge"
+      ],
+      "spot_usd_per_hour": 0.1741,
+      "savings_plan_usd_per_hour": 0.23616,
+      "throughput_scale": 1,
+      "memory_gib": 16
+    },
+    "m7i.2xlarge": {
+      "usd_per_hour": 0.4032,
+      "kind": "cpu",
+      "hardware": "8 vCPU, 32 GiB (Intel Sapphire Rapids)",
+      "spot_usd_per_hour": 0.1391,
+      "savings_plan_usd_per_hour": 0.26672,
+      "throughput_scale": 1,
+      "memory_gib": 32
+    },
+    "c6i.2xlarge": {
+      "usd_per_hour": 0.34,
+      "kind": "cpu",
+      "hardware": "8 vCPU, 16 GiB (Intel Ice Lake)",
+      "spot_usd_per_hour": 0.1094,
+      "savings_plan_usd_per_hour": 0.22491,
+      "throughput_scale": 0.85,
+      "memory_gib": 16
+    },
+    "m6i.2xlarge": {
+      "usd_per_hour": 0.384,
+      "kind": "cpu",
+      "hardware": "8 vCPU, 32 GiB (Intel Ice Lake)",
+      "spot_usd_per_hour": 0.1081,
+      "savings_plan_usd_per_hour": 0.25402,
+      "throughput_scale": 0.85,
+      "memory_gib": 32
+    },
+    "c7a.2xlarge": {
+      "usd_per_hour": 0.41056,
+      "kind": "cpu",
+      "hardware": "8 vCPU, 16 GiB (AMD Genoa)",
+      "spot_usd_per_hour": 0.208,
+      "savings_plan_usd_per_hour": 0.27159,
+      "throughput_scale": 2.4,
+      "memory_gib": 16
+    },
+    "c7i.4xlarge": {
+      "usd_per_hour": 0.714,
+      "kind": "cpu",
+      "hardware": "16 vCPU, 32 GiB (Sapphire Rapids)",
+      "spot_usd_per_hour": 0.2362,
+      "savings_plan_usd_per_hour": 0.47231,
+      "throughput_scale": 2,
+      "memory_gib": 32
+    },
+    "g6e.xlarge": {
+      "usd_per_hour": 1.861,
+      "kind": "gpu",
+      "hardware": "1x NVIDIA L40S 48 GB",
+      "spot_usd_per_hour": 1.5864,
+      "savings_plan_usd_per_hour": 1.17243,
+      "throughput_scale": 1,
+      "gpu_memory_gib": 48
+    },
+    "g6e.2xlarge": {
+      "usd_per_hour": 2.242,
+      "kind": "gpu",
+      "hardware": "1x NVIDIA L40S 48 GB",
+      "spot_usd_per_hour": 2.0673,
+      "savings_plan_usd_per_hour": 1.41251,
+      "throughput_scale": 1,
+      "gpu_memory_gib": 48
+    },
+    "g6e.12xlarge": {
+      "usd_per_hour": 10.493,
+      "kind": "gpu",
+      "hardware": "4x NVIDIA L40S 48 GB",
+      "spot_usd_per_hour": 6.2315,
+      "savings_plan_usd_per_hour": 6.61036,
+      "throughput_scale": 4,
+      "gpu_memory_gib": 192
+    },
+    "p5.48xlarge": {
+      "usd_per_hour": 55.04,
+      "kind": "gpu",
+      "hardware": "8x NVIDIA H100 80 GB",
+      "spot_usd_per_hour": 23.029,
+      "savings_plan_usd_per_hour": 34.6752,
+      "throughput_scale": 16,
+      "gpu_memory_gib": 640
+    },
+    "r7a.4xlarge": {
+      "usd_per_hour": 1.2172,
+      "kind": "cpu",
+      "hardware": "16 vCPU, 128 GiB (AMD Genoa)",
+      "memory_gib": 128,
+      "spot_usd_per_hour": 0.4083,
+      "throughput_scale": 2.4,
+      "alternatives": [
+        "r7i.4xlarge",
+        "r6a.4xlarge",
+        "r6i.4xlarge"
+      ]
+    },
+    "r7i.4xlarge": {
+      "usd_per_hour": 1.0584,
+      "kind": "cpu",
+      "hardware": "16 vCPU, 128 GiB (Intel Sapphire Rapids)",
+      "memory_gib": 128,
+      "spot_usd_per_hour": 0.3637,
+      "throughput_scale": 1.0
+    },
+    "r6a.4xlarge": {
+      "usd_per_hour": 0.9072,
+      "kind": "cpu",
+      "hardware": "16 vCPU, 128 GiB (AMD Milan)",
+      "memory_gib": 128,
+      "spot_usd_per_hour": 0.3029,
+      "throughput_scale": 2.0
+    },
+    "r6i.4xlarge": {
+      "usd_per_hour": 1.008,
+      "kind": "cpu",
+      "hardware": "16 vCPU, 128 GiB (Intel Ice Lake)",
+      "memory_gib": 128,
+      "spot_usd_per_hour": 0.349,
+      "throughput_scale": 0.85
+    }
+  },
+  "fixed_monthly_usd": {
+    "NAT gateway (1 AZ)": 32.85,
+    "Application Load Balancer": 16.43,
+    "EBS gp3 200 GB, 500 MB/s": 36.0,
+    "Secrets Manager (3 secrets)": 1.2
+  },
+  "hours_per_month": 730,
+  "retention_hours": {
+    "agent": 72,
+    "chat": 168
+  },
+  "_engines": "cpu instances run llama.cpp with the model's GGUF build (8k context per slot); gpu instances run vLLM with hf_model.",
+  "bedrock_models": {
+    "minimax-m2.5": {
+      "label": "MiniMax M2.5",
+      "model_id": "minimax.minimax-m2.5",
+      "base_model_id": "minimax.minimax-m2.5",
+      "price": {
+        "input_per_million": 0.3,
+        "output_per_million": 1.2
+      },
+      "_note": "Standard on-demand us-east-1, read from the AWS Price List API on 2026-11-16. A reasoning model: its thinking tokens are billed as output.",
+      "reasoning": true
+    }
+  },
+  "_purchase_note": "spot_usd_per_hour: lowest us-east-1 Spot price on 2026-11-16 (it moves; Spot can be interrupted). savings_plan_usd_per_hour: 1-year No Upfront EC2 Instance Savings Plan rate, a commitment billed every hour of the year. c7a spot prices are the higher of us-east-1a/1b (the stack's AZs) on 2026-11-16, not the region minimum.",
+  "_throughput_scale_note": "Model throughput figures are for the reference machine of each kind: c7i.2xlarge (8 vCPU) for cpu, one L40S (g6e.xlarge) for gpu. throughput_scale multiplies them: CPU by vCPU count (older Ice Lake 0.85), GPU by GPU count (p5: 8 H100 at about 2x an L40S each). Assumptions except c7i.2xlarge, which was measured. c7a (AMD Genoa) measured 7.9 tok/s decode on c7a.xlarge on 2026-11-16, so its scale is 1.2 per 4 vCPU. r-family 4xlarge (16 vCPU): Intel measured 3.5 tok/s at 4 vCPU vs AMD 7.9, so Intel 4xlarge is scaled ~1.0 and AMD ~2.4; assumptions until measured. Spot prices for r-family are the higher of us-east-1a/1b on 2026-11-17."
+}

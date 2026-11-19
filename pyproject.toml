@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keepsake"
+version = "0.1.0"
+description = "Keepsake: staged measurement and evaluation for Bedrock persistent context caching."
+readme = "docs/operations.md"
+# Lambda functions run on Python 3.13 (set in infra/constructs/api.py). The code is kept
+# compatible with Python 3.11+ so it also runs on the local developer interpreter.
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.40",
+    "aws-lambda-powertools>=3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["cdk.out", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "C4", "RUF"]
+ignore = ["S311"]  # random is used only for deterministic sample-log generation, never security
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["keepsake", "infra"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = [
+    "ignore::DeprecationWarning:jsii.*",
+    "ignore::DeprecationWarning:botocore.*",
+]

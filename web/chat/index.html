@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inference Cost Lab</title>
+  <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar" aria-label="Conversations">
+      <button type="button" class="primary wide" id="new-chat">+ New chat</button>
+      <ul class="conversations" id="conversation-list"></ul>
+      <div class="sidebar-foot">
+        <button type="button" class="ghost wide" id="token-button">Access token</button>
+      </div>
+    </aside>
+
+    <main class="chat">
+      <header class="topbar">
+        <button type="button" class="ghost icon" id="toggle-sidebar" aria-label="Show conversations">☰</button>
+        <div class="title">
+          <strong>Inference Cost Lab</strong>
+          <span class="subtitle" id="model-label">loading…</span>
+        </div>
+        <button type="button" class="ghost" id="showcase-top">▶ Showcase</button>
+        <button type="button" class="ghost" id="toggle-costs" aria-controls="costs">Costs</button>
+      </header>
+
+      <section class="messages" id="messages" aria-live="polite">
+        <div class="empty" id="empty-state">
+          <h1>Ask anything</h1>
+          <p>Each message is answered twice, at the same time: by the self-hosted model on our GPU and by the same model on Amazon Bedrock. Every answer shows its tokens, speed and cost.</p>
+          <div class="suggestions">
+            <button type="button" class="chip primary" id="run-showcase">▶ Showcase: repeated long context</button>
+            <button type="button" class="chip" data-prompt="Explain KV caching in LLM inference in three short paragraphs.">Explain KV caching</button>
+            <button type="button" class="chip" data-prompt="Write a Python function that merges overlapping intervals, with a short explanation.">Merge intervals in Python</button>
+            <button type="button" class="chip" data-prompt="Give me a checklist for reviewing an AWS IAM policy.">IAM review checklist</button>
+          </div>
+        </div>
+      </section>
+
+      <form class="composer" id="composer">
+        <details class="options">
+          <summary>Options</summary>
+          <div class="option-grid">
+            <label>System prompt
+              <textarea id="system-prompt" rows="2" maxlength="8000">You are a helpful, concise assistant.</textarea>
+            </label>
+            <label>Max answer tokens
+              <input type="number" id="max-tokens" min="16" max="2048" value="512">
+            </label>
+            <label>Workload class
+              <select id="workload">
+                <option value="chat">Chat (cache kept 7 days)</option>
+                <option value="agent">Agent (cache kept 3 days)</option>
+              </select>
+            </label>
+            <fieldset>
+              <legend>Answer with</legend>
+              <label class="inline"><input type="checkbox" id="use-selfhost" checked> Self-hosted</label>
+              <label class="inline"><input type="checkbox" id="use-bedrock" checked> Bedrock</label>
+            </fieldset>
+          </div>
+        </details>
+        <div class="input-row">
+          <textarea id="prompt" rows="1" placeholder="Message both models…" aria-label="Message" maxlength="100000"></textarea>
+          <button type="submit" class="primary" id="send">Send</button>
+        </div>
+        <p class="hint" id="status" role="status"></p>
+      </form>
+    </main>
+
+    <aside class="costs" id="costs" aria-label="Cost comparison">
+      <button type="button" class="ghost close-drawer" id="close-costs">Close ✕</button>
+      <h2>This session</h2>
+      <div class="totals">
+        <div class="total selfhost">
+          <span class="label">Self-hosted</span>
+          <span class="value" id="total-selfhost">$0.0000</span>
+          <span class="sub" id="total-selfhost-sub">at target load</span>
+        </div>
+        <div class="total bedrock">
+          <span class="label">Bedrock</span>
+          <span class="value" id="total-bedrock">$0.0000</span>
+          <span class="sub" id="total-bedrock-sub">on-demand</span>
+        </div>
+      </div>
+      <p class="verdict" id="session-verdict">Send a message to start comparing.</p>
+      <dl class="facts" id="session-facts"></dl>
+
+      <h2>Monthly projection</h2>
+      <div class="presets" role="group" aria-label="Scenarios">
+        <button type="button" class="chip" data-preset="demo">This demo</button>
+        <button type="button" class="chip" data-preset="hours">GPU, business hours</button>
+        <button type="button" class="chip" data-preset="scale">Proposed architecture at scale</button>
+      </div>
+      <p class="note" id="preset-note"></p>
+      <div class="projection-controls">
+        <label>Input tokens per month <output id="tokens-out"></output>
+          <input type="range" id="tokens" min="6" max="12" step="0.05" value="9">
+        </label>
+        <label>Prompt reused from KV cache <output id="reuse-out"></output>
+          <input type="range" id="reuse" min="0" max="0.95" step="0.05" value="0.6">
+        </label>
+        <label>Output tokens per input token <output id="ratio-out"></output>
+          <input type="range" id="ratio" min="0.02" max="1" step="0.01" value="0.15">
+        </label>
+        <label>Target utilization <output id="util-out"></output>
+          <input type="range" id="util" min="0.2" max="0.9" step="0.05" value="0.6">
+        </label>
+        <label>Hours online per month <output id="hours-out"></output>
+          <input type="range" id="hours" min="20" max="730" step="10" value="730">
+          <span class="hint-inline">Scaled to zero the rest of the time; all traffic must fit in these hours.</span>
+        </label>
+        <label>Instance (CPU or GPU)
+          <select id="instance"></select>
+        </label>
+        <label>Purchase option
+          <select id="purchase">
+            <option value="on_demand">On-demand</option>
+            <option value="spot">Spot (can be interrupted)</option>
+            <option value="savings_plan">1-year Savings Plan (billed every hour)</option>
+          </select>
+        </label>
+      </div>
+      <div class="projection-result" id="projection-result"></div>
+      <figure class="chart">
+        <svg id="chart" viewBox="0 0 320 200" role="img" aria-labelledby="chart-title"><title id="chart-title">Monthly cost against monthly input tokens</title></svg>
+        <figcaption>
+          <span class="key selfhost">Self-hosted</span>
+          <span class="key bedrock">Bedrock</span>
+          <span class="key marker">you are here</span>
+        </figcaption>
+      </figure>
+      <p class="note" id="price-note"></p>
+    </aside>
+  </div>
+
+  <dialog id="token-dialog">
+    <form method="dialog" id="token-form">
+      <h2>Access token</h2>
+      <p>This gateway needs the access token from the deployment outputs.</p>
+      <input type="password" id="token-input" autocomplete="off" aria-label="Access token">
+      <div class="dialog-actions">
+        <button type="button" class="ghost" id="token-cancel">Cancel</button>
+        <button type="submit" value="save" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="showcase.js"></script>
+  <script src="chat.js"></script>
+</body>
+</html>

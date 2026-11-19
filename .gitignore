@@ -1,0 +1,50 @@
+# BEGIN AI-DLC:gitignore
+# AI-DLC: local working files
+aidlc/active-space
+aidlc/spaces/*/intents/active-intent
+aidlc/.aidlc-clone-id
+aidlc.settings.local.json
+aidlc/.aidlc-unit-scope.json
+aidlc/.aidlc-unit-parked
+aidlc/.aidlc-claim-generations.json
+aidlc/.aidlc-unit-participant
+aidlc/.aidlc-claim-registry.json
+aidlc/.aidlc-unit-releases/
+aidlc/.aidlc-unit-merges/
+aidlc/.aidlc-active-space-*.tmp
+aidlc/active-memory/
+aidlc/.aidlc-sessions/
+aidlc/.aidlc-request-text/
+aidlc/spaces/*/intents/.aidlc-*
+**/aidlc/spaces/*/intents/**/.aidlc-engine/
+**/aidlc/spaces/*/intents/**/.aidlc-sensors/
+aidlc/spaces/*/knowledge/documentkb/.journal/
+aidlc/spaces/*/knowledge/.sources.local.json
+aidlc/spaces/*/intents/*/runtime-graph.json
+aidlc/spaces/*/intents/*/.aidlc-*
+aidlc/diagnostics/
+.claude/settings.local.json
+# END AI-DLC:gitignore
+
+# Local environments, caches and build output
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+cdk.out/
+cdk.context.json
+
+# Project documents kept out of the public repo
+*.pdf
+*.docx
+Statement_of_Work_Keepsake.md
+
+# Local AI tooling and workspace (not part of the code)
+.claude/
+.codex/
+.agents/
+.mcp.json
+AGENTS.md
+aidlc/
